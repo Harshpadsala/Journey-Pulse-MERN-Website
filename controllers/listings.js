@@ -72,6 +72,13 @@ module.exports.createListing = async (req,res,next)=>{
 
     req.flash('success','New Listing Created!');
     res.redirect('/listings');
+
+    // newListing = await addCoordinates(newListing);
+    // await newListing.save();
+
+    // req.flash("success", "New Listing Created!");
+    // res.redirect("/listings");
+
 };
 
 //edit listing get request
