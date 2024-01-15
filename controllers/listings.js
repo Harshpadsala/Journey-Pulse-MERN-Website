@@ -1,8 +1,18 @@
 const Listing = require('../models/listing');
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
 const mapToken = process.env.MAP_TOKEN;
-
+// const ExpressError = require("../utils/ExpressErrors");
 const geocodingClient = mbxGeocoding({ accessToken: mapToken });
+
+// const addCoordinates = async (listing) => {
+//     let response = await geocodingClient.forwardGeocode({
+//         query: listing.location,
+//         limit: 1
+//       }).send();
+      
+//     listing.geometry = response.body.features[0].geometry;
+//     return listing;
+// }
 
 //index route
 module.exports.index = (async (req,res)=>{
@@ -17,7 +27,6 @@ module.exports.renderNewForm = (req,res)=>{
 
 //show listing
 module.exports.showListing = async(req,res)=>{
-    console.log('working');
     let {id}= req.params;
 
     const listing = await Listing.findById(id)
@@ -33,10 +42,11 @@ module.exports.showListing = async(req,res)=>{
         res.redirect('/listings');
     }
 
+    // listing = await addCoordinates(listing);
     res.render('listings/show.ejs',{listing});
 };
 
-//new listing post request
+//Create listing - new listing post request
 module.exports.createListing = async (req,res,next)=>{
 
     let response = await geocodingClient
@@ -81,7 +91,7 @@ module.exports.renderEditForm = async (req,res)=>{
     
 };
 
-//edit lising post request
+//Update listing - edit lising post request
 module.exports.updateListing = async (req,res)=>{
 
     let {id}= req.params;    
@@ -94,6 +104,10 @@ module.exports.updateListing = async (req,res)=>{
         listing.image = { url , filename };
         await listing.save();
     }
+
+    // listing = await addCoordinates(listing);
+    // await listing.save();
+
     req.flash('success','Listing Updated!');
     res.redirect(`/listings/${id}`);
 };
