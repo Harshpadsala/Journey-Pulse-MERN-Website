@@ -1,18 +1,21 @@
+const { get } = require('mongoose');
 const Listing = require('../models/listing');
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
 const mapToken = process.env.MAP_TOKEN;
 // const ExpressError = require("../utils/ExpressErrors");
 const geocodingClient = mbxGeocoding({ accessToken: mapToken });
 
-// const addCoordinates = async (listing) => {
-//     let response = await geocodingClient.forwardGeocode({
-//         query: listing.location,
-//         limit: 1
-//       }).send();
+const addCoordinates = async (listing) => {
+    let response = await geocodingClient
+    .forwardGeocode({
+        query : listing.location,
+        limit : 10
+    })
+    .send();
       
-//     listing.geometry = response.body.features[0].geometry;
-//     return listing;
-// }
+    listing.geometry = response.body.features[0].geometry;
+    return listing;
+}
 
 //index route
 module.exports.index = (async (req,res)=>{
@@ -29,13 +32,16 @@ module.exports.renderNewForm = (req,res)=>{
 module.exports.showListing = async(req,res)=>{
     let {id}= req.params;
 
-    const listing = await Listing.findById(id)
+    let listing = await Listing.findById(id)
         .populate({path : 'reviews',
             populate :{
                 path : 'author',
                 },
             })
         .populate('owner');
+
+        listing = await addCoordinates(listing);
+        await listing.save();
 
     if(!listing){
         req.flash('error','Listing you requested for does not exist !');
@@ -48,27 +54,16 @@ module.exports.showListing = async(req,res)=>{
 
 //Create listing - new listing post request
 module.exports.createListing = async (req,res,next)=>{
-
-    let response = await geocodingClient
-    .forwardGeocode({
-        query : req.body.listing.location,
-        limit : 1
-    })
-    .send();
-
     let url = req.file.path;
     let filename = req.file.filename;
 
-    const newListing = new Listing(req.body.listing);
+    let newListing = new Listing(req.body.listing);
     newListing.owner = req.user._id;
     newListing.image = {url,filename}; 
 
-    console.log(response.body.features[0].geometry);
 
-
-    newListing.geometry = response.body.features[0].geometry;
+    newListing = await addCoordinates(newListing);
     let savedListing = await newListing.save();
-    console.log(savedListing);
 
     req.flash('success','New Listing Created!');
     res.redirect('/listings');
@@ -112,8 +107,8 @@ module.exports.updateListing = async (req,res)=>{
         await listing.save();
     }
 
-    // listing = await addCoordinates(listing);
-    // await listing.save();
+    listing = await addCoordinates(listing);
+    await listing.save();
 
     req.flash('success','Listing Updated!');
     res.redirect(`/listings/${id}`);

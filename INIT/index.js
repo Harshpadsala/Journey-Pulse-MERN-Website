@@ -1,9 +1,12 @@
 const mongoose = require('mongoose');
 const initData = require('./data.js');
 const Listing = require('../models/listing.js');
-
+if (process.env.NODE_ENV != 'production'){
+    require('dotenv').config()
+}
+    
 async function main() {
-    await mongoose.connect('mongodb://127.0.0.1:27017/wanderlust');
+    await mongoose.connect(process.env.ATLASDB_URL);
   }
 
 main()
@@ -17,7 +20,7 @@ main()
 
 const initDB = async ()=>{
     await Listing.deleteMany({});
-    initData.data = initData.data.map((obj)=>({...obj , owner : '659e9b8fbee7bc5b6d21fc7d'}));
+    initData.data = initData.data.map((obj)=>({...obj , owner : '65a4d08f3af475bcd593d934'}));
     await Listing.insertMany(initData.data);
     console.log('initialization is done');
 }   
