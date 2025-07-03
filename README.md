@@ -88,7 +88,7 @@ Feel free to check the [issues page](https://github.com/Harshpadsala/Journey-Pul
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is for **educational and learning purposes only**. No license is associated.
 
 ---
 
